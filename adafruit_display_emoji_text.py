@@ -25,6 +25,8 @@ Any display that supports displayio.
 """
 
 # imports
+import os
+
 import adafruit_imageload
 import bitmaptools
 import displayio
@@ -81,6 +83,13 @@ class EmojiLabel(Widget):
         # ruff: noqa: PLR0912, PLR0915, PLR1702
         # Too many branches, Too many statements, Too many nested blocks
     ):
+        try:
+            os.stat("emoji")
+        except OSError:
+            raise RuntimeError(
+                "You need to download a set of emoji PNG files and place them CIRCUITPY/emoji/."
+                " The recommended set is available for download here: https://emoji.serenityos.org/"
+            )
         super().__init__(scale=scale)
         self.font = ascii_font
         self.ascii_palette = displayio.Palette(2)
