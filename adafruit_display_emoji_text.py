@@ -95,25 +95,38 @@ class EmojiLabel(Widget):
         self.ascii_palette = displayio.Palette(2)
         self.ascii_palette[0] = 0x000000
         self.ascii_palette[1] = 0xFFFFFF
+        self._text = text
+        self._width = 0
+        self._height = 12
+        self._bounding_box = [0, 0, 0, 12]
+        self._row_width = 0
+        self._next_x = 0
+        self._next_y = 0
+
+        self._update_text(self._text)
+
+    def _update_text(self, new_text):
+        while len(self) > 0:
+            del self[0]
 
         self._width = 0
         self._height = 12
-        self._bounding_box = [0, 0, 0, 0]
+        self._bounding_box = [0, 0, 0, 12]
         self._row_width = 0
 
-        self._last_x = 0
-        self._last_y = 0
+        self._next_x = 0
+        self._next_y = 0
 
         skip_count = 0
-        for i, char in enumerate(text):
+        for i, char in enumerate(new_text):
             if skip_count > 0:
                 skip_count -= 1
                 continue
             # print(char)
             if char == "\n":
                 # print("newline")
-                self._last_y += 12
-                self._last_x = 0
+                self._next_y += 12
+                self._next_x = 0
                 self._height += 12
                 self._row_width = 0
                 self._bounding_box[3] = self._height
@@ -135,14 +148,16 @@ class EmojiLabel(Widget):
                     skip_source_index=0,
                 )
                 tg = displayio.TileGrid(bitmap=bmp, pixel_shader=self.ascii_palette)
-                tg.x = self._last_x
-                tg.y = self._last_y
+                self.append(tg)
+
+                tg.x = self._next_x
+                tg.y = self._next_y
                 self._row_width += bmp.width
                 if self._width < self._row_width:
                     self._width = self._row_width
                     self._bounding_box[2] = self._width
-                self._last_x += found_glyph.width
-                self.append(tg)
+                self._next_x += found_glyph.width
+
             else:
                 bmp = None
                 for cur_range in EmojiLabel.MULTI_CODE_RANGES:
@@ -151,8 +166,9 @@ class EmojiLabel(Widget):
                         if ord(char) in EmojiLabel.FIVE_WIDES:
                             # try 5 wide file
                             try:
-                                filename = f"emoji/U+{ord(char):X}_U+{ord(text[i + 1]):X}_U+{ord(text[i + 2]):X}_U+{ord(text[i + 3]):X}_U+{ord(text[i + 4]):X}.png"  # noqa: E501, Line too long
+                                filename = f"emoji/U+{ord(char):X}_U+{ord(new_text[i + 1]):X}_U+{ord(new_text[i + 2]):X}_U+{ord(new_text[i + 3]):X}_U+{ord(new_text[i + 4]):X}.png"  # noqa: E501, Line too long
                                 bmp, palette = adafruit_imageload.load(filename)
+
                                 skip_count = 4
                                 break
                             except (OSError, IndexError):
@@ -160,14 +176,14 @@ class EmojiLabel(Widget):
 
                         # try 4 wide file
                         try:
-                            filename = f"emoji/U+{ord(char):X}_U+{ord(text[i + 1]):X}_U+{ord(text[i + 2]):X}_U+{ord(text[i + 3]):X}.png"  # noqa: E501, Line too long
+                            filename = f"emoji/U+{ord(char):X}_U+{ord(new_text[i + 1]):X}_U+{ord(new_text[i + 2]):X}_U+{ord(new_text[i + 3]):X}.png"  # noqa: E501, Line too long
                             bmp, palette = adafruit_imageload.load(filename)
                             skip_count = 3
                             break
                         except (OSError, IndexError):
                             # try double wide file
                             try:
-                                filename = f"emoji/U+{ord(char):X}_U+{ord(text[i + 1]):X}.png"
+                                filename = f"emoji/U+{ord(char):X}_U+{ord(new_text[i + 1]):X}.png"
                                 bmp, palette = adafruit_imageload.load(filename)
                                 skip_count = 1
                                 break
@@ -179,20 +195,30 @@ class EmojiLabel(Widget):
                     filename = f"emoji/U+{ord(char):X}.png"
                     try:
                         bmp, palette = adafruit_imageload.load(filename)
+
                     except OSError:
                         print(f"Unable to render: {hex(ord(char))}")
 
                 try:
                     tg = displayio.TileGrid(bitmap=bmp, pixel_shader=palette)
-                    tg.x = self._last_x
-                    tg.y = self._last_y
+                    tg.x = self._next_x
+                    tg.y = self._next_y
 
                     self._row_width += bmp.width
                     if self._width < self._row_width:
                         self._width = self._row_width
                         self._bounding_box[2] = self._width
-                    self._last_x += bmp.width + 1
+                    self._next_x += bmp.width + 1
                     self.append(tg)
                 except TypeError:
                     # Unsupported bitmap type
                     print(f"Unable to render {hex(ord(char))}. Unsupported bitmap")
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, new_text):
+        if new_text != self._text:
+            self._update_text(new_text)
