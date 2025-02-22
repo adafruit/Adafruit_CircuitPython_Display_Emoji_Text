@@ -76,12 +76,13 @@ class EmojiLabel(Widget):
     FIVE_WIDES = [127947, 9977, 128105, 127948, 128104, 128065, 127987]
 
     def __init__(
-        self,
-        text,
-        scale=1,
-        ascii_font=terminalio.FONT,
-        # ruff: noqa: PLR0912, PLR0915, PLR1702
-        # Too many branches, Too many statements, Too many nested blocks
+            self,
+            text,
+            scale=1,
+            ascii_font=terminalio.FONT,
+            fg_color=0xFFFFFF,
+            # ruff: noqa: PLR0912, PLR0915, PLR1702
+            # Too many branches, Too many statements, Too many nested blocks
     ):
         try:
             os.stat("emoji")
@@ -94,7 +95,8 @@ class EmojiLabel(Widget):
         self.font = ascii_font
         self.ascii_palette = displayio.Palette(2)
         self.ascii_palette[0] = 0x000000
-        self.ascii_palette[1] = 0xFFFFFF
+        self.ascii_palette.make_transparent(0)
+        self.ascii_palette[1] = fg_color
         self._text = text
         self._width = 0
         self._height = 12
