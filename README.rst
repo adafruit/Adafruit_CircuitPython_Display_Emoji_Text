@@ -3,7 +3,7 @@ Introduction
 
 
 .. image:: https://readthedocs.org/projects/adafruit-circuitpython-display-emoji-text/badge/?version=latest
-    :target: https://docs.circuitpython.org/projects/display_emoji_text/en/latest/
+    :target: https://docs.circuitpython.org/projects/display-emoji-text/en/latest/
     :alt: Documentation Status
 
 
