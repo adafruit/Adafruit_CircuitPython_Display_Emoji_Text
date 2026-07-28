@@ -36,6 +36,11 @@ intersphinx_mapping = {
 # Show the docstring from both the class and its __init__() method.
 autoclass_content = "both"
 
+# Don't fall back to a parent class' docstring when a member has none. Combined
+# with autoclass_content="both" this would append displayio.Group.__init__'s
+# docs for scale, x and y to every class docstring that already documents them.
+autodoc_inherit_docstrings = False
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
