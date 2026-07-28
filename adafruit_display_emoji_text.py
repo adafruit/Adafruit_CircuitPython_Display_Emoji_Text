@@ -38,6 +38,22 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_Display_Emoji_Tex
 
 
 class EmojiLabel(Widget):
+    """
+    A label that can render text containing emoji. Emoji are loaded from PNG files
+    inside of the ``emoji`` directory on the storage.
+
+    :param str text: The text to display. May contain emoji characters.
+    :param int scale: The scale factor to render the label at.
+    :param ascii_font: The font to use for non-emoji characters.
+    :param int x: Initial x position within the parent.
+    :param int y: Initial y position within the parent.
+    :param anchor_point: (X,Y) values from 0.0 to 1.0 to define the anchor point relative to the
+     label bounding box
+    :type anchor_point: Tuple[float, float]
+    :param anchored_position: (x,y) pixel value for the location of the anchor_point
+    :type anchored_position: Tuple[int, int]
+    """
+
     WIDTH = 10
     MULTI_CODE_RANGES = [
         [35, 35],
@@ -80,8 +96,13 @@ class EmojiLabel(Widget):
         text,
         scale=1,
         ascii_font=terminalio.FONT,
-        # ruff: noqa: PLR0912, PLR0915, PLR1702
-        # Too many branches, Too many statements, Too many nested blocks
+        x=0,
+        y=0,
+        anchor_point=None,
+        anchored_position=None,
+        # ruff: noqa: PLR0912, PLR0913, PLR0915, PLR0917, PLR1702
+        # Too many branches, Too many arguments, Too many statements,
+        # Too many positional arguments, Too many nested blocks
     ):
         try:
             os.stat("emoji")
@@ -90,7 +111,13 @@ class EmojiLabel(Widget):
                 "You need to download a set of emoji PNG files and place them CIRCUITPY/emoji/."
                 " The recommended set is available for download here: https://emoji.serenityos.org/"
             )
-        super().__init__(scale=scale)
+        super().__init__(
+            x=x,
+            y=y,
+            scale=scale,
+            anchor_point=anchor_point,
+            anchored_position=anchored_position,
+        )
         self.font = ascii_font
         self.ascii_palette = displayio.Palette(2)
         self.ascii_palette[0] = 0x000000
@@ -196,3 +223,7 @@ class EmojiLabel(Widget):
                 except TypeError:
                     # Unsupported bitmap type
                     print(f"Unable to render {hex(ord(char))}. Unsupported bitmap")
+
+        self._bounding_box[2] = self._width
+        self._bounding_box[3] = self._height
+        self._update_position()
